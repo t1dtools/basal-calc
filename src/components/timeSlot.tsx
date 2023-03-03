@@ -95,7 +95,7 @@ export const TimeSlotRow = ({
           {programIndex === 0 && (
             <input
               type="number"
-              className="w-16 rounded border-2 border-fuchsia-800 bg-transparent px-2 font-mono outline-none"
+              className="w-16 rounded bg-sky-400 bg-opacity-40 px-2 text-right font-mono outline-none"
               onChange={(e) => setTimeSlotInsulin(tsIndex, e)}
               value={timeSlot.Insulin}
               step="0.05"
@@ -113,8 +113,11 @@ export const TimeSlotRow = ({
             )}
           {programIndex > 0 && percentage !== 0 && !isNaN(percentage) && (
             <>
-              {timeSlotInsulin.toFixed(2)} ~ {roundedTimeSlotInsulin.toFixed(2)}{" "}
-              <span className="hidden sm:inline">U/hr</span>
+              <span className="text-xs">{timeSlotInsulin.toFixed(2)} ~ </span>
+              <span className="text-sky-400">
+                {roundedTimeSlotInsulin.toFixed(2)}
+              </span>{" "}
+              <span className="hidden text-sky-400 sm:inline">U/hr</span>
             </>
           )}
           {programIndex === 0 && (

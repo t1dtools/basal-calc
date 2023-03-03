@@ -185,6 +185,7 @@ export default function Home() {
     const url = new URL(window.location.href)
     url.searchParams.set("share", base64EncodedData)
     navigator.clipboard.writeText(url.toString())
+    router.push(url.toString())
   }
 
   useEffect(() => {
@@ -235,15 +236,34 @@ export default function Home() {
 
       <Headline size={1} text="Omnipod Dash Calculator" />
 
+      <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8">
+        <p>Welcome to the Omnipod Dash Basal Program Calculator website!</p>
+        <p className="mt-4">
+          This site aims to help you calculate alternative programs based on a
+          percentage of a base program.
+          <br /> Get started by setting up your base program below, and create
+          as many alternative as you
+          <br /> want with the{" "}
+          <span className="rounded border-2 border-sky-400">
+            + Add Program
+          </span>{" "}
+          button below.
+        </p>
+        <p className="mt-4">
+          You can also use the <span className="">Share</span> button to create
+          a link you can use to share this with someone.
+        </p>
+      </div>
+
       <div className="flex flex-wrap place-content-center">
         <button
-          className="mx-4 rounded border-2 border-fuchsia-800 p-4 text-center text-xl"
+          className="mx-4 rounded border-2 border-sky-400 p-4 text-center text-xl"
           onClick={(e) => share()}
         >
           Share
         </button>
         <button
-          className="mx-4 rounded border-2 border-fuchsia-800 p-4 text-center text-xl"
+          className="mx-4 rounded border-2 border-sky-400 p-4 text-center text-xl"
           onClick={(e) => addProgram()}
         >
           + Add Program
@@ -255,10 +275,7 @@ export default function Home() {
           programs.map((program, index) => {
             return (
               <>
-                <div
-                  className="m-8 mx-8 rounded-lg bg-gray-800 p-8"
-                  key={index}
-                >
+                <div className="m-8 rounded-lg bg-gray-800 p-8" key={index}>
                   <>
                     <h2>
                       <input
@@ -273,7 +290,7 @@ export default function Home() {
                     <div className="text-right">
                       {index === 0 && (
                         <button
-                          className="rounded border-2 border-fuchsia-800 px-4 text-xl"
+                          className="rounded border-2 border-sky-400 px-4 text-xl"
                           onClick={(e) => addTimeSlot()}
                         >
                           + Add Time
@@ -282,7 +299,7 @@ export default function Home() {
                       {index > 0 && (
                         <div>
                           <select
-                            className="rounded border-2 border-fuchsia-800 bg-transparent px-4 text-right text-xl"
+                            className="rounded border-2 border-sky-400 bg-transparent px-4 text-right text-xl"
                             onChange={(e) => setPercentage(index, e)}
                           >
                             {percentages.map((percentage) => {
