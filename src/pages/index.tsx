@@ -226,7 +226,10 @@ export default function Home() {
           name="description"
           content="A tool for helping you dial in your alternative programs for your OmniPod Dash insulin pump."
         />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, user-scalable=no"
+        />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
