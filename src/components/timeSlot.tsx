@@ -53,9 +53,7 @@ export const TimeSlotRow = ({
 
   const insulinChange: number = timeSlot.Insulin * (percentage / 100)
   let timeSlotInsulin: number = timeSlot.Insulin + insulinChange
-  // round timeSlotInsulin to the nearest 0.05
   const roundedTimeSlotInsulin = Math.round(timeSlotInsulin * 20) / 20
-  //   const roundedTimeSlotInsulin = Math.round(timeSlotInsulin * 100) / 100
 
   return (
     <>
@@ -68,12 +66,12 @@ export const TimeSlotRow = ({
             {startHours}:{startMinutes}
           </div>
           {programIndex === 0 && (
-            <div
+            <button
               className="ml-2 cursor-pointer rounded-l bg-red-400 px-2 text-xl"
-              onClick={changeTimeSlotEndTime(tsIndex, "decrease")}
+              onClick={() => changeTimeSlotEndTime(tsIndex, "decrease")}
             >
               -
-            </div>
+            </button>
           )}
           <div
             className={classNames(
@@ -84,12 +82,12 @@ export const TimeSlotRow = ({
             {endHours}:{endMinutes}
           </div>
           {programIndex === 0 && (
-            <div
+            <button
               className="cursor-pointer rounded-r bg-green-400 px-2 text-xl"
-              onClick={changeTimeSlotEndTime(tsIndex, "increase")}
+              onClick={() => changeTimeSlotEndTime(tsIndex, "increase")}
             >
               +
-            </div>
+            </button>
           )}
         </div>
 

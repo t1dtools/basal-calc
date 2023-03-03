@@ -56,38 +56,37 @@ export default function Home() {
     setTimeSlots([...timeSlots])
   }
 
-  const changeTimeSlotEndTime =
-    (timeSlotIndex: number, direction: "increase" | "decrease") =>
-    (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
-      const timeSlot = timeSlots[timeSlotIndex]
-      const newEndTime = new Date(timeSlot.End)
-      if (direction == "increase") {
-        if (timeSlot.End.getHours() == 0 && timeSlot.End.getMinutes() == 0) {
-          return
-        }
-
-        newEndTime.setMinutes(timeSlot.End.getMinutes() + 30)
-      } else if (direction == "decrease") {
-        // Ensure end time is at least 30 minutes after start time
-        // and trigger deletion if it's not
-        if (
-          timeSlot.End.getTime() - timeSlot.Start.getTime() <=
-          30 * 60 * 1000
-        ) {
-          if (confirm("Are you sure you want to delete this time slot?")) {
-            timeSlots.splice(timeSlotIndex, 1)
-            updateFollowingTimeSlots(timeSlotIndex)
-          }
-          return
-        }
-
-        newEndTime.setMinutes(timeSlot.End.getMinutes() - 30)
+  const changeTimeSlotEndTime = (
+    timeSlotIndex: number,
+    direction: "increase" | "decrease"
+  ) => {
+    const timeSlot = timeSlots[timeSlotIndex]
+    const newEndTime = new Date(timeSlot.End)
+    if (direction == "increase") {
+      if (timeSlot.End.getHours() == 0 && timeSlot.End.getMinutes() == 0) {
+        return
       }
-      timeSlot.End = newEndTime
 
-      // Update all following time slots
-      updateFollowingTimeSlots(timeSlotIndex)
+      newEndTime.setMinutes(timeSlot.End.getMinutes() + 30)
+    } else if (direction == "decrease") {
+      // Ensure end time is at least 30 minutes after start time
+      // and trigger deletion if it's not
+      if (timeSlot.End.getTime() - timeSlot.Start.getTime() <= 30 * 60 * 1000) {
+        if (confirm("Are you sure you want to delete this time slot?")) {
+          timeSlots.splice(timeSlotIndex, 1)
+          updateFollowingTimeSlots(timeSlotIndex)
+        }
+        return
+      }
+
+      newEndTime.setMinutes(timeSlot.End.getMinutes() - 30)
     }
+    timeSlot.End = newEndTime
+    setTimeSlots([...timeSlots])
+
+    // Update all following time slots
+    updateFollowingTimeSlots(timeSlotIndex)
+  }
 
   const updateFollowingTimeSlots = (timeSlotIndex: number) => {
     for (let i = timeSlotIndex + 1; i < timeSlots.length; i++) {
@@ -288,6 +287,7 @@ export default function Home() {
                                 percentage > 0 ? `+${percentage}` : percentage
                               return (
                                 <option
+                                  key={displayPercentage}
                                   value={percentage}
                                   selected={percentage === program.Percentage}
                                 >
@@ -308,6 +308,7 @@ export default function Home() {
                           const height = timeSlot.Insulin * 100
                           return (
                             <div
+                              key={tsIndex}
                               className="overflow-hidden rounded-lg bg-slate-50"
                               style={{ flexGrow: width, height: 48 / height }}
                             >
@@ -320,6 +321,7 @@ export default function Home() {
                     {timeSlots &&
                       timeSlots.map((timeSlot, tsIndex) => (
                         <TimeSlotRow
+                          key={"tsr_" + tsIndex}
                           timeSlot={timeSlot}
                           tsIndex={tsIndex}
                           programIndex={index}
@@ -336,8 +338,8 @@ export default function Home() {
       </div>
 
       <div className="mt-8 mb-8 text-center text-sm text-gray-600">
-        t1d.tools is a collection of Type 1 Diabetes related tools. They're all
-        open source and can be found on{" "}
+        t1d.tools is a collection of Type 1 Diabetes related tools. They&apos;re
+        all open source and can be found on{" "}
         <a
           href="https://github.com/t1dtools"
           className="underline hover:no-underline"
