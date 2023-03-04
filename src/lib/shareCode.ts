@@ -1,6 +1,8 @@
 import { Program } from "@/components/basalProgram"
 import { TimeSlot } from "@/components/timeSlot"
 
+const PROGRAM_SPLITTER = "%p"
+
 interface DecodedShareCode {
   timeSlots: TimeSlot[]
   programs: Program[]
@@ -17,6 +19,10 @@ interface DecodedShareCode {
  * Take text between __ and __ and use it as the name of the program
  * Next 3 characters: first program percentage
  * Repeat until end of string
+ *
+ *
+ * Assumptions:
+ * We only need to store end times, since there's no gap between them, and we always start at 00:00
  */
 
 function pad(num: string, size: number) {
@@ -26,13 +32,6 @@ function pad(num: string, size: number) {
 }
 
 export const encodeShareCode = (timeSlots: TimeSlot[], programs: Program[]) => {
-  const compactPrograms = programs.map((program) => {
-    return {
-      n: program.Name,
-      p: program.Percentage,
-    }
-  })
-
   const programsCompacted = programs.reduce((prev, curr) => {
     const percentageString = curr.Percentage.toString()
 
@@ -44,69 +43,82 @@ export const encodeShareCode = (timeSlots: TimeSlot[], programs: Program[]) => {
       3
     )
 
-    return prev + `p__${curr.Name}__${symbol}${perString}`
+    return prev + `${PROGRAM_SPLITTER}${curr.Name}__${symbol}${perString}`
   }, "")
 
-  console.log("programsCompacted", programsCompacted)
-
-  // convert time slots to compact time slots
-  const compactTimeSlots = timeSlots.map((timeSlot) => {
-    return {
-      s: timeSlot.Start,
-      e: timeSlot.End,
-      i: timeSlot.Insulin,
-    }
-  })
-
   const compactedTimeSlots = timeSlots.reduce((prev, curr) => {
-    const start =
-      pad(curr.Start.getHours().toString(), 2) +
-      pad(curr.Start.getMinutes().toString(), 2)
     const end =
       pad(curr.End.getHours().toString(), 2) +
       pad(curr.End.getMinutes().toString(), 2)
 
-    return prev + start + end + curr.Insulin
+    return `${prev}t${end}u${curr.Insulin}`
   }, "")
 
-  console.log("compactedTimeSlots", compactedTimeSlots)
-
-  console.log("asdfas", `a${compactedTimeSlots}p${programsCompacted}`)
-
-  const data = {
-    p: compactPrograms,
-    t: compactTimeSlots,
-  }
-
-  return Buffer.from(JSON.stringify(data)).toString("base64")
+  return btoa(`a${compactedTimeSlots}pg${programsCompacted}`)
 }
 
 export const decodeShareCode = (code: string): DecodedShareCode => {
-  const decoded = Buffer.from(code, "base64").toString()
-  const data = JSON.parse(decoded)
+  code = atob(code)
+  // Strip version character
+  code = code.substring(1)
 
-  const compactPrograms = data.p
-  const compactTimeSlots = data.t
+  const [times, programs] = code.split("pg")
 
-  // convert compact programs to programs
-  const newPrograms = compactPrograms.map((program: any) => {
-    return {
-      Name: program.n,
-      Percentage: program.p,
+  const timeSlots = times.split("t").reduce<TimeSlot[]>((prev, curr) => {
+    if (curr === "") {
+      return prev
     }
-  })
 
-  // convert compact time slots to time slots
-  const newTimeSlots = compactTimeSlots.map((timeSlot: any) => {
-    return {
-      Start: new Date(timeSlot.s),
-      End: new Date(timeSlot.e),
-      Insulin: timeSlot.i,
+    const [end, insulin] = curr.split("u")
+    const copy = [...prev]
+
+    let startDate = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      new Date().getDate(),
+      0,
+      0
+    )
+
+    if (copy.length > 0) {
+      startDate = copy[copy.length - 1].End
     }
-  })
+
+    copy.push({
+      Start: startDate,
+      End: new Date(
+        new Date().getFullYear(),
+        new Date().getMonth(),
+        new Date().getDate(),
+        parseInt(end.substring(0, 2)),
+        parseInt(end.substring(2, 4))
+      ),
+      Insulin: parseFloat(insulin),
+    })
+
+    return copy
+  }, [])
+
+  const finalPrograms = programs
+    .split(PROGRAM_SPLITTER)
+    .reduce<Program[]>((prev, curr) => {
+      if (curr === "") {
+        return prev
+      }
+
+      const [name, percentage] = curr.split("__")
+      const copy = [...prev]
+
+      copy.push({
+        Name: name,
+        Percentage: parseInt(percentage, 10),
+      })
+
+      return copy
+    }, [])
 
   return {
-    timeSlots: newTimeSlots,
-    programs: newPrograms,
+    timeSlots: timeSlots,
+    programs: finalPrograms,
   }
 }
