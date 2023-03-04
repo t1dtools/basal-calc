@@ -11,6 +11,8 @@ export default function Home() {
   const [isSharing, setIsSharing] = useState(false)
   const [shareURL, setShareURL] = useState("")
   const [showingShareSuccess, setShowingShareSuccess] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(true)
+  const [arrivedFromShare, setArrivedFromShare] = useState(true)
   const [programs, setPrograms] = useState<Program[]>([
     {
       Name: "Base Program",
@@ -209,6 +211,7 @@ export default function Home() {
 
   useEffect(() => {
     if (router.query.share) {
+      setArrivedFromShare(true)
       const base64EncodedData = router.query.share as string
       const buffer = Buffer.from(base64EncodedData, "base64")
       const data = JSON.parse(buffer.toString())
@@ -253,35 +256,78 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Headline size={1} text="Omnipod Dash Calculator" />
+      <Headline
+        size={1}
+        text="Omnipod Dash Calculator"
+        subheadline="A tool for helping you dial in your alternative programs for your OmniPod Dash insulin pump."
+      />
 
-      <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8">
-        <p>Welcome to the Omnipod Dash Basal Program Calculator website!</p>
-        <p className="mt-4">
-          This site aims to help you calculate alternative programs based on a
-          percentage of a base program.
-          <br /> Get started by setting up your base program below, and create
-          as many alternative as you
-          <br /> want with the{" "}
-          <button
-            className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
-            onClick={(e) => addProgram()}
-          >
-            + Add Program
-          </button>{" "}
-          button below.
-        </p>
-        <p className="mt-4">
-          You can also use the{" "}
-          <button
-            className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
-            onClick={(e) => share()}
-          >
-            Share
-          </button>{" "}
-          button to create a link you can use to share this with others.
-        </p>
-      </div>
+      {showWelcome && !arrivedFromShare && (
+        <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8">
+          <p className="mt-4">
+            This site aims to help you calculate alternative programs based on a
+            percentage of a base program.
+            <br /> Get started by setting up your base program below, and create
+            as many alternative as you
+            <br /> want with the{" "}
+            <button
+              className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
+              onClick={(e) => addProgram()}
+            >
+              + Add Program
+            </button>{" "}
+            button below.
+          </p>
+          <p className="mt-4">
+            You can also use the{" "}
+            <button
+              className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
+              onClick={(e) => share()}
+            >
+              Share
+            </button>{" "}
+            button to create a link you can use to share this with others.
+          </p>
+
+          <p className="text-right">
+            <button
+              className="text-md mt-4 rounded border-2 border-sky-400 p-[4px] hover:bg-sky-400 hover:text-gray-800"
+              onClick={(e) => setShowWelcome(false)}
+            >
+              Hide
+            </button>
+          </p>
+        </div>
+      )}
+
+      {arrivedFromShare && showWelcome && (
+        <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8">
+          <p className="font-bold">
+            Someone has shared their basal program with you.
+          </p>
+
+          <p className="mt-4">
+            This link will always open this program. If you make any changes
+            below that you want to share, make sure to click the{" "}
+            <button
+              className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
+              onClick={(e) => share()}
+            >
+              Share
+            </button>{" "}
+            button, and get your own share URL.
+          </p>
+
+          <p className="text-right">
+            <button
+              className="text-md mt-4 rounded border-2 border-sky-400 p-[4px] hover:bg-sky-400 hover:text-gray-800"
+              onClick={(e) => setShowWelcome(false)}
+            >
+              Hide
+            </button>
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-wrap place-content-center">
         <button
