@@ -12,7 +12,7 @@ export default function Home() {
   const [shareURL, setShareURL] = useState("")
   const [showingShareSuccess, setShowingShareSuccess] = useState(false)
   const [showWelcome, setShowWelcome] = useState(true)
-  const [arrivedFromShare, setArrivedFromShare] = useState(true)
+  const [arrivedFromShare, setArrivedFromShare] = useState(false)
   const [programs, setPrograms] = useState<Program[]>([
     {
       Name: "Base Program",
