@@ -102,10 +102,10 @@ export const TimeSlotRow = ({
             />
           )}
           {programIndex > 0 && percentage === 0 && (
-            <>
+            <span className="text-sky-400">
               {timeSlotInsulin.toFixed(2)}{" "}
               <span className="hidden sm:inline">U/hr</span>
-            </>
+            </span>
           )}
           {programIndex > 0 &&
             ((!percentage && percentage !== 0) || isNaN(percentage)) && (

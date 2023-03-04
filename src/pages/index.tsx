@@ -4,9 +4,13 @@ import { useRouter } from "next/router"
 import { Headline } from "../components/headline"
 import { Program } from "../components/basalProgram"
 import { TimeSlot, TimeSlotRow } from "../components/timeSlot"
+import classNames from "classnames"
 
 export default function Home() {
   const router = useRouter()
+  const [isSharing, setIsSharing] = useState(false)
+  const [shareURL, setShareURL] = useState("")
+  const [showingShareSuccess, setShowingShareSuccess] = useState(false)
   const [programs, setPrograms] = useState<Program[]>([
     {
       Name: "Base Program",
@@ -156,6 +160,8 @@ export default function Home() {
   )
 
   const share = () => {
+    setIsSharing(!isSharing)
+
     // convert programs to compact programs
     const compactPrograms = programs.map((program) => {
       return {
@@ -186,6 +192,19 @@ export default function Home() {
     url.searchParams.set("share", base64EncodedData)
     navigator.clipboard.writeText(url.toString())
     router.push(url.toString())
+    setShareURL(url.toString())
+  }
+
+  const copyShareURL = () => {
+    if (showingShareSuccess) {
+      return
+    }
+    setShowingShareSuccess(true)
+    navigator.clipboard.writeText(shareURL)
+    const originalShareURL = shareURL
+    setTimeout(() => {
+      setShowingShareSuccess(false)
+    }, 2500)
   }
 
   useEffect(() => {
@@ -244,31 +263,63 @@ export default function Home() {
           <br /> Get started by setting up your base program below, and create
           as many alternative as you
           <br /> want with the{" "}
-          <span className="rounded border-2 border-sky-400">
+          <button
+            className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
+            onClick={(e) => addProgram()}
+          >
             + Add Program
-          </span>{" "}
+          </button>{" "}
           button below.
         </p>
         <p className="mt-4">
-          You can also use the <span className="">Share</span> button to create
-          a link you can use to share this with someone.
+          You can also use the{" "}
+          <button
+            className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
+            onClick={(e) => share()}
+          >
+            Share
+          </button>{" "}
+          button to create a link you can use to share this with others.
         </p>
       </div>
 
       <div className="flex flex-wrap place-content-center">
         <button
-          className="mx-4 rounded border-2 border-sky-400 p-4 text-center text-xl"
+          className="mx-4 rounded border-2 border-sky-400 px-4 py-2 text-center text-xl hover:bg-sky-400 hover:text-gray-800"
           onClick={(e) => share()}
         >
           Share
         </button>
         <button
-          className="mx-4 rounded border-2 border-sky-400 p-4 text-center text-xl"
+          className="mx-4 rounded border-2 border-sky-400 px-4 py-2 text-center text-xl hover:bg-sky-400 hover:text-gray-800"
           onClick={(e) => addProgram()}
         >
           + Add Program
         </button>
       </div>
+
+      {isSharing && (
+        <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8 text-center">
+          <p>Copy the below URL to share your program.</p>
+          <input
+            type="text"
+            value={shareURL}
+            className="my-2 w-full rounded bg-sky-400 bg-opacity-40 p-4 text-center font-mono outline-none"
+            readOnly
+            onClick={() => {
+              copyShareURL()
+            }}
+          />
+          <div
+            className={classNames(
+              "relative my-2 -mt-16 w-full rounded bg-green-400 p-4 transition-opacity",
+              showingShareSuccess ? "opacity-100" : "hidden opacity-0"
+            )}
+          >
+            Copied to clipboard!
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-wrap place-content-center">
         {programs &&
@@ -290,7 +341,8 @@ export default function Home() {
                     <div className="text-right">
                       {index === 0 && (
                         <button
-                          className="rounded border-2 border-sky-400 px-4 text-xl"
+                          className="rounded border-2 border-sky-400 px-4 py-2 text-xl
+                          hover:bg-sky-400 hover:text-gray-800"
                           onClick={(e) => addTimeSlot()}
                         >
                           + Add Time
@@ -329,10 +381,12 @@ export default function Home() {
                           return (
                             <div
                               key={tsIndex}
-                              className="overflow-hidden rounded-lg bg-slate-50"
-                              style={{ flexGrow: width, height: 48 / height }}
+                              className="overflow-hidden bg-slate-50 text-sky-400"
+                              style={{ flexGrow: width, height: height + "%" }}
                             >
-                              {timeSlot.Insulin}
+                              <span className="rotate-90">
+                                {timeSlot.Insulin}
+                              </span>
                             </div>
                           )
                         })}
