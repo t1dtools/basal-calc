@@ -1,38 +1,60 @@
 import { Program } from "@/components/basalProgram"
 import { TimeSlot } from "@/components/timeSlot"
 
+const SPLITTER = "%pg"
 const PROGRAM_SPLITTER = "%p"
+const PROGRAM_NAME_SPLITTER = "__"
+
+const TIMES_SPLITTER = "t"
+const UNIT_SPLITTER = "u"
 
 interface DecodedShareCode {
   timeSlots: TimeSlot[]
   programs: Program[]
 }
 
-/**
- * Structure of the share code:
- * Example: a00000500230010p__namehere__150
- *
- * First character: version of the share code
- * Next 4 characters: first time slot start time
- * Next 3 characters: first time value
- * Repeat until we get a p
- * Take text between __ and __ and use it as the name of the program
- * Next 3 characters: first program percentage
- * Repeat until end of string
- *
- *
- * Assumptions:
- * We only need to store end times, since there's no gap between them, and we always start at 00:00
- */
-
+// Credit: https://stackoverflow.com/questions/2998784/how-to-output-numbers-with-leading-zeros-in-javascript
 function pad(num: string, size: number) {
-  num = num.toString()
-  while (num.length < size) num = "0" + num
-  return num
+  return String(num).padStart(size, "0")
 }
 
 export const encodeShareCode = (timeSlots: TimeSlot[], programs: Program[]) => {
-  const programsCompacted = programs.reduce((prev, curr) => {
+  console.log(
+    `a${encodeTimeSlots(timeSlots)}${SPLITTER}${encodePrograms(programs)}`
+  )
+  return btoa(
+    `a${encodeTimeSlots(timeSlots)}${SPLITTER}${encodePrograms(programs)}`
+  )
+}
+
+export const decodeShareCode = (code: string): DecodedShareCode => {
+  code = atob(code)
+
+  // Strip version character
+  code = code.substring(1)
+
+  const [times, programs] = code.split(SPLITTER)
+  const decodedTimes = decodeTimeSlots(times)
+  const decodedPrograms = decodePrograms(programs)
+
+  return {
+    timeSlots: decodedTimes,
+    programs: decodedPrograms,
+  }
+}
+
+function encodeTimeSlots(timeSlots: TimeSlot[]) {
+  return timeSlots.reduce((prev, curr) => {
+    const end =
+      pad(curr.End.getHours().toString(), 2) +
+      pad(curr.End.getMinutes().toString(), 2)
+
+    return `${prev}${TIMES_SPLITTER}${end}${UNIT_SPLITTER}${curr.Insulin}`
+  }, "")
+}
+
+function encodePrograms(programs: Program[]) {
+  return programs.reduce((prev, curr) => {
     const percentageString = curr.Percentage.toString()
 
     const symbol = percentageString[0] === "-" ? "-" : "+"
@@ -43,33 +65,20 @@ export const encodeShareCode = (timeSlots: TimeSlot[], programs: Program[]) => {
       3
     )
 
-    return prev + `${PROGRAM_SPLITTER}${curr.Name}__${symbol}${perString}`
+    return (
+      prev +
+      `${PROGRAM_SPLITTER}${curr.Name}${PROGRAM_NAME_SPLITTER}${symbol}${perString}`
+    )
   }, "")
-
-  const compactedTimeSlots = timeSlots.reduce((prev, curr) => {
-    const end =
-      pad(curr.End.getHours().toString(), 2) +
-      pad(curr.End.getMinutes().toString(), 2)
-
-    return `${prev}t${end}u${curr.Insulin}`
-  }, "")
-
-  return btoa(`a${compactedTimeSlots}pg${programsCompacted}`)
 }
 
-export const decodeShareCode = (code: string): DecodedShareCode => {
-  code = atob(code)
-  // Strip version character
-  code = code.substring(1)
-
-  const [times, programs] = code.split("pg")
-
-  const timeSlots = times.split("t").reduce<TimeSlot[]>((prev, curr) => {
+function decodeTimeSlots(times: string) {
+  return times.split(TIMES_SPLITTER).reduce<TimeSlot[]>((prev, curr) => {
     if (curr === "") {
       return prev
     }
 
-    const [end, insulin] = curr.split("u")
+    const [end, insulin] = curr.split(UNIT_SPLITTER)
     const copy = [...prev]
 
     let startDate = new Date(
@@ -98,27 +107,22 @@ export const decodeShareCode = (code: string): DecodedShareCode => {
 
     return copy
   }, [])
+}
 
-  const finalPrograms = programs
-    .split(PROGRAM_SPLITTER)
-    .reduce<Program[]>((prev, curr) => {
-      if (curr === "") {
-        return prev
-      }
+function decodePrograms(programs: string) {
+  return programs.split(PROGRAM_SPLITTER).reduce<Program[]>((prev, curr) => {
+    if (curr === "") {
+      return prev
+    }
 
-      const [name, percentage] = curr.split("__")
-      const copy = [...prev]
+    const [name, percentage] = curr.split(PROGRAM_NAME_SPLITTER)
+    const copy = [...prev]
 
-      copy.push({
-        Name: name,
-        Percentage: parseInt(percentage, 10),
-      })
+    copy.push({
+      Name: name,
+      Percentage: parseInt(percentage, 10),
+    })
 
-      return copy
-    }, [])
-
-  return {
-    timeSlots: timeSlots,
-    programs: finalPrograms,
-  }
+    return copy
+  }, [])
 }
