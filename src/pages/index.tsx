@@ -78,6 +78,10 @@ export default function Home() {
       // Ensure end time is at least 30 minutes after start time
       // and trigger deletion if it's not
       if (timeSlot.End.getTime() - timeSlot.Start.getTime() <= 30 * 60 * 1000) {
+        if (timeSlotIndex === 0) {
+          return
+        }
+
         if (confirm("Are you sure you want to delete this time slot?")) {
           timeSlots.splice(timeSlotIndex, 1)
           updateFollowingTimeSlots(timeSlotIndex)
@@ -209,6 +213,24 @@ export default function Home() {
     }, 2500)
   }
 
+  const reset = () => {
+    if (confirm("Are you sure you want to reset and start over?")) {
+      setPrograms([
+        {
+          Name: "Base Program",
+          Percentage: 0,
+        },
+      ])
+      setTimeSlots([
+        {
+          Start: new Date(0, 0, 0, 0, 0),
+          End: new Date(0, 0, 0, 0, 30),
+          Insulin: 0.05,
+        },
+      ])
+    }
+  }
+
   useEffect(() => {
     if (router.query.share) {
       setArrivedFromShare(true)
@@ -264,7 +286,7 @@ export default function Home() {
 
       {showWelcome && !arrivedFromShare && (
         <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8">
-          <p className="mt-4">
+          <p>
             This site aims to help you calculate alternative programs based on a
             percentage of a base program.
             <br /> Get started by setting up your base program below, and create
@@ -287,6 +309,16 @@ export default function Home() {
               Share
             </button>{" "}
             button to create a link you can use to share this with others.
+          </p>
+          <p className="mt-4">
+            You can also view a{" "}
+            <a
+              href="?share="
+              className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
+            >
+              Sample Program
+            </a>{" "}
+            if you want.
           </p>
 
           <p className="text-right">
@@ -315,7 +347,7 @@ export default function Home() {
             >
               Share
             </button>{" "}
-            button, and get your own share URL.
+            button, and get your own share link.
           </p>
 
           <p className="text-right">
@@ -336,6 +368,14 @@ export default function Home() {
         >
           Share
         </button>
+        <button
+          className="mx-4 rounded border-2 border-sky-400 px-4 py-2 text-center text-xl hover:bg-sky-400 hover:text-gray-800"
+          onClick={(e) => reset()}
+        >
+          Start over
+        </button>
+      </div>
+      <div className="mt-4 flex flex-wrap place-content-center">
         <button
           className="mx-4 rounded border-2 border-sky-400 px-4 py-2 text-center text-xl hover:bg-sky-400 hover:text-gray-800"
           onClick={(e) => addProgram()}
@@ -387,7 +427,7 @@ export default function Home() {
                     <div className="text-right">
                       {index === 0 && (
                         <button
-                          className="rounded border-2 border-sky-400 px-4 py-2 text-xl
+                          className="text-md rounded border-2 border-sky-400 px-2 py-2 text-center
                           hover:bg-sky-400 hover:text-gray-800"
                           onClick={(e) => addTimeSlot()}
                         >
@@ -397,8 +437,9 @@ export default function Home() {
                       {index > 0 && (
                         <div>
                           <select
-                            className="rounded border-2 border-sky-400 bg-transparent px-4 text-right text-xl"
+                            className="text-md rounded border-2 border-sky-400 bg-transparent px-2 py-2 text-right hover:bg-sky-400 hover:text-gray-800"
                             onChange={(e) => setPercentage(index, e)}
+                            title={"Percentage of " + programs[0].Name}
                           >
                             {percentages.map((percentage) => {
                               const displayPercentage =
