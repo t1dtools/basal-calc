@@ -331,14 +331,6 @@ export default function Home() {
           Start over
         </button>
       </div>
-      <div className="mt-4 flex flex-wrap place-content-center">
-        <button
-          className="mx-4 rounded border-2 border-sky-400 px-4 py-2 text-center text-xl hover:bg-sky-400 hover:text-gray-800"
-          onClick={(e) => addProgram()}
-        >
-          + Add Program
-        </button>
-      </div>
 
       {isSharing && (
         <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8 text-center">
@@ -360,8 +352,24 @@ export default function Home() {
           >
             Copied to clipboard!
           </div>
+
+          <button
+            className="mt-4 rounded border-2 border-sky-400 p-[4px] hover:bg-sky-400 hover:text-gray-800"
+            onClick={(e) => setIsSharing(false)}
+          >
+            Close
+          </button>
         </div>
       )}
+
+      <div className="mt-4 flex flex-wrap place-content-center">
+        <button
+          className="mx-4 rounded border-2 border-sky-400 px-4 py-2 text-center text-xl hover:bg-sky-400 hover:text-gray-800"
+          onClick={(e) => addProgram()}
+        >
+          + Add Program
+        </button>
+      </div>
 
       <div className="flex flex-wrap place-content-center">
         {programs &&
