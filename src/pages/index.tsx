@@ -5,6 +5,7 @@ import { Headline } from "../components/headline"
 import { Program } from "../components/basalProgram"
 import { TimeSlot, TimeSlotRow } from "../components/timeSlot"
 import classNames from "classnames"
+import { decodeShareCode, encodeShareCode } from "@/lib/shareCode"
 
 export default function Home() {
   const router = useRouter()
@@ -166,33 +167,9 @@ export default function Home() {
   )
 
   const share = () => {
-    setIsSharing(!isSharing)
+    setIsSharing(true)
 
-    // convert programs to compact programs
-    const compactPrograms = programs.map((program) => {
-      return {
-        n: program.Name,
-        p: program.Percentage,
-      }
-    })
-
-    // convert time slots to compact time slots
-    const compactTimeSlots = timeSlots.map((timeSlot) => {
-      return {
-        s: timeSlot.Start,
-        e: timeSlot.End,
-        i: timeSlot.Insulin,
-      }
-    })
-
-    const data = {
-      p: compactPrograms,
-      t: compactTimeSlots,
-    }
-
-    // base64 encode the data
-    const buffer = Buffer.from(JSON.stringify(data))
-    const base64EncodedData = buffer.toString("base64")
+    const base64EncodedData = encodeShareCode(timeSlots, programs)
 
     const url = new URL(window.location.href)
     url.searchParams.set("share", base64EncodedData)
@@ -235,31 +212,10 @@ export default function Home() {
     if (router.query.share) {
       setArrivedFromShare(true)
       const base64EncodedData = router.query.share as string
-      const buffer = Buffer.from(base64EncodedData, "base64")
-      const data = JSON.parse(buffer.toString())
+      const decoded = decodeShareCode(base64EncodedData)
 
-      const compactPrograms = data.p
-      const compactTimeSlots = data.t
-
-      // convert compact programs to programs
-      const newPrograms = compactPrograms.map((program: any) => {
-        return {
-          Name: program.n,
-          Percentage: program.p,
-        }
-      })
-
-      // convert compact time slots to time slots
-      const newTimeSlots = compactTimeSlots.map((timeSlot: any) => {
-        return {
-          Start: new Date(timeSlot.s),
-          End: new Date(timeSlot.e),
-          Insulin: timeSlot.i,
-        }
-      })
-
-      setPrograms(newPrograms)
-      setTimeSlots(newTimeSlots)
+      setPrograms(decoded.programs)
+      setTimeSlots(decoded.timeSlots)
     }
   }, [router.query.share])
 
