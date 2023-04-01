@@ -4,11 +4,14 @@ import { useRouter } from "next/router"
 import { Headline } from "../components/headline"
 import { Program } from "../components/basalProgram"
 import { TimeSlot, TimeSlotRow } from "../components/timeSlot"
-import classNames from "classnames"
-import { decodeShareCode, encodeShareCode } from "@/lib/shareCode"
+import { Welcome } from "../components/welcome"
+import { Actions } from "../components/actions"
+import { encodeShareCode, decodeShareCode } from "@/lib/shareCode"
+import { t } from "@/lib/translate"
 
 export default function Home() {
   const router = useRouter()
+  
   const [isSharing, setIsSharing] = useState(false)
   const [shareURL, setShareURL] = useState("")
   const [showingShareSuccess, setShowingShareSuccess] = useState(false)
@@ -16,21 +19,20 @@ export default function Home() {
   const [arrivedFromShare, setArrivedFromShare] = useState(false)
   const [programs, setPrograms] = useState<Program[]>([
     {
-      Name: "Base Program",
+      Name: t("Base Program"),
       Percentage: 0,
     },
   ])
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
     {
       Start: new Date(0, 0, 0, 0, 0),
-      End: new Date(0, 0, 0, 0, 30),
       Insulin: 0.05,
     },
   ])
 
   const getNextValidStartTime = () => {
     const lastTimeSlot = timeSlots[timeSlots.length - 1]
-    return lastTimeSlot.End
+    return lastTimeSlot.Start
   }
 
   const addProgram = () => {
@@ -57,63 +59,58 @@ export default function Home() {
     nextValidEndTime.setMinutes(nextValidStartTime.getMinutes() + 30)
     timeSlots.push({
       Start: nextValidStartTime,
-      End: nextValidEndTime,
       Insulin: 0.05,
     })
     setTimeSlots([...timeSlots])
   }
 
-  const changeTimeSlotEndTime = (
+  const changeTimeSlotTime = (
     timeSlotIndex: number,
     direction: "increase" | "decrease"
   ) => {
     const timeSlot = timeSlots[timeSlotIndex]
-    const newEndTime = new Date(timeSlot.End)
+    const newStartTime = timeSlot.Start
     if (direction == "increase") {
-      if (timeSlot.End.getHours() == 0 && timeSlot.End.getMinutes() == 0) {
-        return
-      }
-
-      newEndTime.setMinutes(timeSlot.End.getMinutes() + 30)
+      newStartTime.setMinutes(timeSlot.Start.getMinutes() + 30)
     } else if (direction == "decrease") {
       // Ensure end time is at least 30 minutes after start time
       // and trigger deletion if it's not
-      if (timeSlot.End.getTime() - timeSlot.Start.getTime() <= 30 * 60 * 1000) {
-        if (timeSlotIndex === 0) {
-          return
-        }
+      // if (timeSlot.End.getTime() - timeSlot.Start.getTime() <= 30 * 60 * 1000) {
+      //   if (timeSlotIndex === 0) {
+      //     return
+      //   }
 
-        if (confirm("Are you sure you want to delete this time slot?")) {
-          timeSlots.splice(timeSlotIndex, 1)
-          updateFollowingTimeSlots(timeSlotIndex)
-        }
-        return
-      }
+      //   if (confirm("Are you sure you want to delete this time slot?")) {
+      //     timeSlots.splice(timeSlotIndex, 1)
+      //     updateFollowingTimeSlots(timeSlotIndex)
+      //   }
+      //   return
+      // }
 
-      newEndTime.setMinutes(timeSlot.End.getMinutes() - 30)
+      newStartTime.setMinutes(timeSlot.Start.getMinutes() - 30)
     }
-    timeSlot.End = newEndTime
+    timeSlot.Start = newStartTime
     setTimeSlots([...timeSlots])
 
     // Update all following time slots
-    updateFollowingTimeSlots(timeSlotIndex)
+    // updateFollowingTimeSlots(timeSlotIndex)
   }
 
-  const updateFollowingTimeSlots = (timeSlotIndex: number) => {
-    for (let i = timeSlotIndex + 1; i < timeSlots.length; i++) {
-      const nextTimeSlot = timeSlots[i]
+  // const updateFollowingTimeSlots = (timeSlotIndex: number) => {
+  //   for (let i = timeSlotIndex + 1; i < timeSlots.length; i++) {
+  //     const nextTimeSlot = timeSlots[i]
 
-      const nextTimeSlotLengthInMinutes =
-        (nextTimeSlot.End.getTime() - nextTimeSlot.Start.getTime()) / 1000 / 60
+  //     const nextTimeSlotLengthInMinutes =
+  //       (nextTimeSlot.End.getTime() - nextTimeSlot.Start.getTime()) / 1000 / 60
 
-      nextTimeSlot.Start = new Date(timeSlots[i - 1].End)
-      nextTimeSlot.End = new Date(nextTimeSlot.Start)
-      nextTimeSlot.End.setMinutes(
-        nextTimeSlot.Start.getMinutes() + nextTimeSlotLengthInMinutes
-      )
-    }
-    setTimeSlots([...timeSlots])
-  }
+  //     nextTimeSlot.Start = new Date(timeSlots[i - 1].Start)
+  //     nextTimeSlot.End = new Date(nextTimeSlot.Start)
+  //     nextTimeSlot.End.setMinutes(
+  //       nextTimeSlot.Start.getMinutes() + nextTimeSlotLengthInMinutes
+  //     )
+  //   }
+  //   setTimeSlots([...timeSlots])
+  // }
 
   const setTimeSlotInsulin = (
     timeSlotIndex: number,
@@ -166,6 +163,23 @@ export default function Home() {
     (x) => x % 5 == 0
   )
 
+  const reset = () => {
+    if (confirm("Are you sure you want to reset and start over?")) {
+      setPrograms([
+        {
+          Name: t("Base Program"),
+          Percentage: 0,
+        },
+      ])
+      setTimeSlots([
+        {
+          Start: new Date(0, 0, 0, 0, 0),
+          Insulin: 0.05,
+        },
+      ])
+    }
+  }
+
   const share = () => {
     setIsSharing(true)
 
@@ -176,36 +190,6 @@ export default function Home() {
     navigator.clipboard.writeText(url.toString())
     router.push(url.toString())
     setShareURL(url.toString())
-  }
-
-  const copyShareURL = () => {
-    if (showingShareSuccess) {
-      return
-    }
-    setShowingShareSuccess(true)
-    navigator.clipboard.writeText(shareURL)
-    const originalShareURL = shareURL
-    setTimeout(() => {
-      setShowingShareSuccess(false)
-    }, 2500)
-  }
-
-  const reset = () => {
-    if (confirm("Are you sure you want to reset and start over?")) {
-      setPrograms([
-        {
-          Name: "Base Program",
-          Percentage: 0,
-        },
-      ])
-      setTimeSlots([
-        {
-          Start: new Date(0, 0, 0, 0, 0),
-          End: new Date(0, 0, 0, 0, 30),
-          Insulin: 0.05,
-        },
-      ])
-    }
   }
 
   useEffect(() => {
@@ -222,10 +206,10 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Omnipod Dash Basal Program Calculator</title>
+        <title>{t("Basal Insulin Program Calculator")}</title>
         <meta
           name="description"
-          content="A tool for helping you dial in your alternative programs for your OmniPod Dash insulin pump."
+          content="A tool for helping you dial in your alternative basal programs for your insulin pump."
         />
         <meta
           name="viewport"
@@ -236,147 +220,21 @@ export default function Home() {
 
       <Headline
         size={1}
-        text="Omnipod Dash Calculator"
-        subheadline="A tool for helping you dial in your alternative programs for your OmniPod Dash insulin pump."
+        text="Basal Insulin Calculator"
+        subheadline="A tool for helping you dial in your alternative basal programs for your insulin pump."
       />
 
-      {showWelcome && !arrivedFromShare && (
-        <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8">
-          <p>
-            This site aims to help you calculate alternative programs based on a
-            percentage of a base program.
-            <br /> Get started by setting up your base program below, and create
-            as many alternative as you
-            <br /> want with the{" "}
-            <button
-              className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
-              onClick={(e) => addProgram()}
-            >
-              + Add Program
-            </button>{" "}
-            button below.
-          </p>
-          <p className="mt-4">
-            You can also use the{" "}
-            <button
-              className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
-              onClick={(e) => share()}
-            >
-              Share
-            </button>{" "}
-            button to create a link you can use to share this with others.
-          </p>
-          <p className="mt-4">
-            You can also view a{" "}
-            <a
-              href="?share="
-              className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
-            >
-              Sample Program
-            </a>{" "}
-            if you want.
-          </p>
+      <Welcome showWelcome={showWelcome} arrivedFromShare={arrivedFromShare} addProgram={addProgram} share={share} setShowWelcome={setShowWelcome} />
 
-          <p className="text-right">
-            <button
-              className="text-md mt-4 rounded border-2 border-sky-400 p-[4px] hover:bg-sky-400 hover:text-gray-800"
-              onClick={(e) => setShowWelcome(false)}
-            >
-              Hide
-            </button>
-          </p>
-        </div>
-      )}
-
-      {arrivedFromShare && showWelcome && (
-        <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8">
-          <p className="font-bold">
-            Someone has shared their basal program with you.
-          </p>
-
-          <p className="mt-4">
-            This link will always open this program. If you make any changes
-            below that you want to share, make sure to click the{" "}
-            <button
-              className="rounded border-2 border-sky-400 p-[4px] text-xs hover:bg-sky-400 hover:text-gray-800"
-              onClick={(e) => share()}
-            >
-              Share
-            </button>{" "}
-            button, and get your own share link.
-          </p>
-
-          <p className="text-right">
-            <button
-              className="text-md mt-4 rounded border-2 border-sky-400 p-[4px] hover:bg-sky-400 hover:text-gray-800"
-              onClick={(e) => setShowWelcome(false)}
-            >
-              Hide
-            </button>
-          </p>
-        </div>
-      )}
-
-      <div className="flex flex-wrap place-content-center">
-        <button
-          className="mx-4 rounded border-2 border-sky-400 px-4 py-2 text-center text-xl hover:bg-sky-400 hover:text-gray-800"
-          onClick={(e) => share()}
-        >
-          Share
-        </button>
-        <button
-          className="mx-4 rounded border-2 border-sky-400 px-4 py-2 text-center text-xl hover:bg-sky-400 hover:text-gray-800"
-          onClick={(e) => reset()}
-        >
-          Start over
-        </button>
-      </div>
-
-      {isSharing && (
-        <div className="m-8 mx-auto w-96 rounded-lg bg-gray-800 p-8 text-center">
-          <p>Copy the below URL to share your program.</p>
-          <input
-            type="text"
-            value={shareURL}
-            className="my-2 w-full rounded bg-sky-400 bg-opacity-40 p-4 text-center font-mono outline-none"
-            readOnly
-            onClick={() => {
-              copyShareURL()
-            }}
-          />
-          <div
-            className={classNames(
-              "relative my-2 -mt-16 w-full rounded bg-green-400 p-4 transition-opacity",
-              showingShareSuccess ? "opacity-100" : "hidden opacity-0"
-            )}
-          >
-            Copied to clipboard!
-          </div>
-
-          <button
-            className="mt-4 rounded border-2 border-sky-400 p-[4px] hover:bg-sky-400 hover:text-gray-800"
-            onClick={(e) => setIsSharing(false)}
-          >
-            Close
-          </button>
-        </div>
-      )}
-
-      <div className="mt-4 flex flex-wrap place-content-center">
-        <button
-          className="mx-4 rounded border-2 border-sky-400 px-4 py-2 text-center text-xl hover:bg-sky-400 hover:text-gray-800"
-          onClick={(e) => addProgram()}
-        >
-          + Add Program
-        </button>
-      </div>
+      <Actions router={router} timeSlots={timeSlots} programs={programs} setIsSharing={setIsSharing} isSharing={isSharing} shareURL={shareURL} share={share} setShowingShareSuccess={setShowingShareSuccess} showingShareSuccess={showingShareSuccess} addProgram={addProgram} reset={reset} />
+      
 
       <div className="flex flex-wrap place-content-center">
         {programs &&
           programs.map((program, index) => {
             return (
-              <>
-                <div className="m-8 rounded-lg bg-gray-800 p-8" key={index}>
+              <div key={"program_" + index}>
+                <div className="m-8 rounded-lg bg-gray-800 p-8">
                   <>
                     <h2>
                       <input
@@ -422,42 +280,32 @@ export default function Home() {
                         </div>
                       )}
                     </div>
+                    <div className="flex select-none flex-row justify-between ">
+                      
+                    </div>
 
-                    {false && timeSlots && (
-                      <div className="my-4 flex h-12 rounded-lg bg-slate-600">
-                        {timeSlots.map((timeSlot, tsIndex) => {
-                          const width =
-                            timeSlot.End.getTime() - timeSlot.Start.getTime()
-                          const height = timeSlot.Insulin * 100
-                          return (
-                            <div
-                              key={tsIndex}
-                              className="overflow-hidden bg-slate-50 text-sky-400"
-                              style={{ flexGrow: width, height: height + "%" }}
-                            >
-                              <span className="rotate-90">
-                                {timeSlot.Insulin}
-                              </span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
                     {timeSlots &&
-                      timeSlots.map((timeSlot, tsIndex) => (
-                        <TimeSlotRow
-                          key={"tsr_" + tsIndex}
-                          timeSlot={timeSlot}
-                          tsIndex={tsIndex}
-                          programIndex={index}
-                          percentage={program.Percentage}
-                          setTimeSlotInsulin={setTimeSlotInsulin}
-                          changeTimeSlotEndTime={changeTimeSlotEndTime}
-                        />
-                      ))}
+                      timeSlots.map((timeSlot, tsIndex) => {
+                        return (
+                          <TimeSlotRow
+                            showHeaders={tsIndex === 0}
+                            isFirst={tsIndex === 0}
+                            isLast={tsIndex === timeSlots.length - 1}
+                            key={"tsr_" + tsIndex}
+                            timeSlot={timeSlot}
+                            previousTimeSlot={tsIndex > 0 ? timeSlots[tsIndex - 1] : null}
+                            nextTimeSlot={tsIndex !== timeSlots.length - 1 ? timeSlots[tsIndex + 1] : null}
+                            tsIndex={tsIndex}
+                            programIndex={index}
+                            percentage={program.Percentage}
+                            setTimeSlotInsulin={setTimeSlotInsulin}
+                            changeTimeSlotEndTime={changeTimeSlotTime}
+                          />
+                        )
+                      })}
                   </>
                 </div>
-              </>
+              </div>
             )
           })}
       </div>

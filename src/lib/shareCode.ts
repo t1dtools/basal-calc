@@ -19,16 +19,11 @@ function pad(num: string, size: number) {
 }
 
 export const encodeShareCode = (timeSlots: TimeSlot[], programs: Program[]) => {
-  console.log(
-    `a${encodeTimeSlots(timeSlots)}${SPLITTER}${encodePrograms(programs)}`
-  )
-  return btoa(
-    `a${encodeTimeSlots(timeSlots)}${SPLITTER}${encodePrograms(programs)}`
-  )
+  return Buffer.from(`a${encodeTimeSlots(timeSlots)}${SPLITTER}${encodePrograms(programs)}`).toString("base64").replaceAll("=", "")
 }
 
 export const decodeShareCode = (code: string): DecodedShareCode => {
-  code = atob(code)
+  code = Buffer.from(code, "base64").toString("utf-8")
 
   // Strip version character
   code = code.substring(1)
