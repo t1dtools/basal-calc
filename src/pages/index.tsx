@@ -30,11 +30,6 @@ export default function Home() {
     },
   ])
 
-  const getNextValidStartTime = () => {
-    const lastTimeSlot = timeSlots[timeSlots.length - 1]
-    return lastTimeSlot.Start
-  }
-
   const addProgram = () => {
     setPrograms([
       ...programs,
@@ -46,17 +41,18 @@ export default function Home() {
   }
 
   const addTimeSlot = () => {
-    const nextValidStartTime = getNextValidStartTime()
-    const previousTimeSlot = timeSlots[timeSlots.length - 1].Start
+    const previousStartTime = timeSlots[timeSlots.length - 1].Start
+
     if (
-      previousTimeSlot.getHours() == 23 &&
-      previousTimeSlot.getMinutes() == 30
+      previousStartTime.getHours() == 23 &&
+      previousStartTime.getMinutes() == 30
     ) {
       return
     }
 
-    const nextValidEndTime = new Date(nextValidStartTime)
-    nextValidEndTime.setMinutes(nextValidStartTime.getMinutes() + 30)
+    const nextValidStartTime = new Date(previousStartTime)
+    nextValidStartTime.setMinutes(previousStartTime.getMinutes() + 30)
+
     timeSlots.push({
       Start: nextValidStartTime,
       Insulin: 0.05,
@@ -280,10 +276,6 @@ export default function Home() {
                         </div>
                       )}
                     </div>
-                    <div className="flex select-none flex-row justify-between ">
-                      
-                    </div>
-
                     {timeSlots &&
                       timeSlots.map((timeSlot, tsIndex) => {
                         return (
@@ -299,7 +291,7 @@ export default function Home() {
                             programIndex={index}
                             percentage={program.Percentage}
                             setTimeSlotInsulin={setTimeSlotInsulin}
-                            changeTimeSlotEndTime={changeTimeSlotTime}
+                            changeTimeSlotTime={changeTimeSlotTime}
                           />
                         )
                       })}

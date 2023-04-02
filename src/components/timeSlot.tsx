@@ -26,7 +26,7 @@ export type TimeSlotRowInput = {
     tsIndex: number,
     e: React.ChangeEvent<HTMLInputElement>
   ) => void
-  changeTimeSlotEndTime: (
+  changeTimeSlotTime: (
     tsIndex: number,
     direction: "increase" | "decrease"
   ) => void
@@ -43,7 +43,7 @@ export const TimeSlotRow = ({
   isFirst,
   isLast,
   setTimeSlotInsulin,
-  changeTimeSlotEndTime: changeTimeSlotTime,
+  changeTimeSlotTime: changeTimeSlotTime,
 }: TimeSlotRowInput) => {
   const startHours =
     timeSlot.Start.getHours() < 10
@@ -59,7 +59,7 @@ export const TimeSlotRow = ({
   const roundedTimeSlotInsulin = Math.round(timeSlotInsulin * 20) / 20
 
   let canDecrease = isFirst ? false : true;
-  let canIncrease = isLast ? false : true;
+  let canIncrease = true
 
   // Check if previous time slot is more than 30 minutes earlier
   if (previousTimeSlot !== null) {
@@ -79,6 +79,16 @@ export const TimeSlotRow = ({
     if (diff <= 30) {
       canIncrease = false
     }
+  }
+
+  // if time is 23:30, disable increase
+  if (timeSlot.Start.getHours() === 23 && timeSlot.Start.getMinutes() === 30) {
+    canIncrease = false
+  }
+
+  if (previousTimeSlot === null && nextTimeSlot === null) {
+    canDecrease = false
+    canIncrease = false
   }
 
   return (
