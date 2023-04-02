@@ -40,11 +40,11 @@ export const decodeShareCode = (code: string): DecodedShareCode => {
 
 function encodeTimeSlots(timeSlots: TimeSlot[]) {
   return timeSlots.reduce((prev, curr) => {
-    const end =
-      pad(curr.End.getHours().toString(), 2) +
-      pad(curr.End.getMinutes().toString(), 2)
+    const start =
+      pad(curr.Start.getHours().toString(), 2) +
+      pad(curr.Start.getMinutes().toString(), 2)
 
-    return `${prev}${TIMES_SPLITTER}${end}${UNIT_SPLITTER}${curr.Insulin}`
+    return `${prev}${TIMES_SPLITTER}${start}${UNIT_SPLITTER}${curr.Insulin}`
   }, "")
 }
 
@@ -73,29 +73,16 @@ function decodeTimeSlots(times: string) {
       return prev
     }
 
-    const [end, insulin] = curr.split(UNIT_SPLITTER)
+    const [start, insulin] = curr.split(UNIT_SPLITTER)
     const copy = [...prev]
 
-    let startDate = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      new Date().getDate(),
-      0,
-      0
-    )
-
-    if (copy.length > 0) {
-      startDate = copy[copy.length - 1].End
-    }
-
     copy.push({
-      Start: startDate,
-      End: new Date(
+      Start: new Date(
         new Date().getFullYear(),
         new Date().getMonth(),
         new Date().getDate(),
-        parseInt(end.substring(0, 2)),
-        parseInt(end.substring(2, 4))
+        parseInt(start.substring(0, 2)),
+        parseInt(start.substring(2, 4))
       ),
       Insulin: parseFloat(insulin),
     })
