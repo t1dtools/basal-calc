@@ -58,8 +58,10 @@ export const TimeSlotRow = ({
   let timeSlotInsulin: number = timeSlot.Insulin + insulinChange
   const roundedTimeSlotInsulin = Math.round(timeSlotInsulin * 20) / 20
 
-  let canDecrease = isFirst ? false : true;
-  let canIncrease = true
+  let canDecrease = isFirst ? false : true
+  let canIncrease = isFirst ? false : true
+  let decreaseDisableReason = isFirst ? "The first time must be at midnight" : ""
+  let increaseDisableReason = isFirst ? "The first time must be at midnight" : ""
 
   // Check if previous time slot is more than 30 minutes earlier
   if (previousTimeSlot !== null) {
@@ -69,6 +71,7 @@ export const TimeSlotRow = ({
       canDecrease = true
     } else if (diff <= 30) {
       canDecrease = false
+      decreaseDisableReason = "The previous time is too close to this one"
     }
   }
 
@@ -78,12 +81,14 @@ export const TimeSlotRow = ({
     const diff = (nextTimeSlot.Start.getTime() - timeSlot.Start.getTime()) / 1000 / 60
     if (diff <= 30) {
       canIncrease = false
+      increaseDisableReason = "The next time is too close to this one"
     }
   }
 
   // if time is 23:30, disable increase
   if (timeSlot.Start.getHours() === 23 && timeSlot.Start.getMinutes() === 30) {
     canIncrease = false
+    increaseDisableReason = "The last time can not be later than 23:30"
   }
 
   if (previousTimeSlot === null && nextTimeSlot === null) {
@@ -112,6 +117,7 @@ export const TimeSlotRow = ({
               )}
               disabled={!canDecrease}
               onClick={() => changeTimeSlotTime(tsIndex, "decrease")}
+              title={decreaseDisableReason || ""}
             >
               -
             </button>
@@ -127,6 +133,7 @@ export const TimeSlotRow = ({
               )}
               disabled={!canIncrease}
               onClick={() => changeTimeSlotTime(tsIndex, "increase")}
+              title={increaseDisableReason || ""}
             >
               +
             </button>
