@@ -36,7 +36,6 @@ export const Actions = ({
     }
     setShowingShareSuccess(true)
     navigator.clipboard.writeText(shareURL)
-    const originalShareURL = shareURL
     setTimeout(() => {
       setShowingShareSuccess(false)
     }, 2500)
