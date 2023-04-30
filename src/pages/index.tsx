@@ -110,10 +110,8 @@ export default function Home() {
 
   const setTimeSlotInsulin = (
     timeSlotIndex: number,
-    e: React.ChangeEvent<HTMLInputElement>
+    newInsulin: number,
   ) => {
-    let newInsulin = parseFloat(e.target.value)
-
     if (isNaN(newInsulin)) {
       newInsulin = 0
     }
