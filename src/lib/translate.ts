@@ -13,17 +13,17 @@ const translations = <{[key: string]: {[key: string]: string}}>{
 
 export const t = (s: string): string => {
     return s
-    const [language, setLanguage] = useState("en")
+    // const [language, setLanguage] = useState("en")
 
-    useEffect(() => {
-        setLanguage(navigator.language.substring(0, 2))
-    }, [])
+    // useEffect(() => {
+    //     setLanguage(navigator.language.substring(0, 2))
+    // }, [])
 
-    if (language in translations) {
-        if (s in translations[language]) {
-            return translations[language][s]
-        }
-    }
+    // if (language in translations) {
+    //     if (s in translations[language]) {
+    //         return translations[language][s]
+    //     }
+    // }
 
-    return s
+    // return s
 }
