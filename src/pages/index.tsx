@@ -257,6 +257,7 @@ export default function Home() {
                       )}
                       {index > 0 && (
                         <div>
+                          Change from {programs[0].Name} by{" "}
                           <select
                             className="text-md rounded border-2 border-sky-400 bg-transparent px-2 py-2 text-right hover:bg-sky-400 hover:text-gray-800"
                             onChange={(e) => setPercentage(index, e)}
