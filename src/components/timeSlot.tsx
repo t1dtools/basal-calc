@@ -122,7 +122,7 @@ export const TimeSlotRow = ({
               -
             </button>
           )}
-          <div className="col-span-2 rounded bg-slate-500 bg-opacity-25 px-2 leading-relaxed">
+          <div className="col-span-2 bg-slate-500 bg-opacity-25 px-2 leading-relaxed">
             {startHours}:{startMinutes}
           </div>
           {programIndex === 0 && (
