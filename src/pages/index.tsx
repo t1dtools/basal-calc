@@ -173,6 +173,11 @@ export default function Home() {
           Insulin: 0.05,
         },
       ])
+
+      let url = new URL(window.location.href)
+      url.search = ""
+      router.push(url.toString())
+      setShareURL(url.toString())
     }
   }
 
