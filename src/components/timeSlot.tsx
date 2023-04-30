@@ -51,18 +51,38 @@ export const TimeSlotRow = ({
       ? "0" + timeSlot.Start.getMinutes()
       : timeSlot.Start.getMinutes()
 
+  const [insulinMinor, setInsulinMinor] = React.useState<number>(Number(timeSlot.Insulin.toString().split(".")[1]))
+  const [invalidInputWarning, setInvalidInputWarning] = React.useState<string>("")
+
   const insulinAsString = timeSlot.Insulin.toString()
   const insulinMajor = insulinAsString.split(".")[0]
-  const insulinMinor = insulinAsString.split(".")[1]
   const changeMajor = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     const newInsulin = parseFloat(newValue + "." + insulinMinor)
     setTimeSlotInsulin(tsIndex, newInsulin)
   }
   const changeMinor = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    const newInsulin = parseFloat(insulinMajor + "." + newValue)
-    setTimeSlotInsulin(tsIndex, newInsulin)
+    setInvalidInputWarning("")
+    let newValue = e.target.value
+    if (newValue.length === 0) {
+      setInsulinMinor(0)
+      return
+    }
+
+    let numberValue = Number(newValue)
+
+    if (numberValue > 95) {
+      numberValue = 95
+    }
+
+    setInsulinMinor(numberValue)
+    if (numberValue % 5 === 0) {
+      const newInsulin = parseFloat(insulinMajor + "." + numberValue)
+      setTimeSlotInsulin(tsIndex, newInsulin)
+      return
+    }
+
+    setInvalidInputWarning("Insulin must be a multiple of 0.05 - This value is not reflected in other programs until corrected.")
   }
 
   const insulinChange: number = timeSlot.Insulin * (percentage / 100)
@@ -116,10 +136,10 @@ export const TimeSlotRow = ({
   return (
     <>
       {showHeaders && (
-        <>
-          <div>Start Time</div>
-          <div>Insulin</div>
-        </>
+        <div className="mt-4 flex flex-row text-center font-mono">
+          <div className="flex-grow text-left">Start Time</div>
+          <div className="flex-grow text-right">Insulin</div>
+        </div>
       )}
       <div
         className="flex select-none flex-row justify-between"
@@ -130,7 +150,7 @@ export const TimeSlotRow = ({
             <button
               className={classNames(
                 !canDecrease && "cursor-not-allowed opacity-20",
-                "ml-2 cursor-pointer rounded-l bg-red-400 px-2 text-xl"
+                "cursor-pointer rounded-l bg-red-400 px-2 text-xl"
               )}
               disabled={!canDecrease}
               onClick={() => changeTimeSlotTime(tsIndex, "decrease")}
@@ -165,9 +185,12 @@ export const TimeSlotRow = ({
         <div className="align-items-end my-4 ml-4 select-text text-right">
           {programIndex === 0 && (
             <>
+              {invalidInputWarning && (
+                <span className="mr-2 align-middle" title={invalidInputWarning}>⚠️</span>
+              )}
               <input
                 type="text"
-                className="mr-1 w-10 rounded bg-sky-400 bg-opacity-40 px-2 text-right font-mono outline-none"
+                className="mr-1 w-10 rounded bg-sky-400 bg-opacity-40 px-2 text-right font-mono outline-none align-middle"
                 inputMode="numeric"
                 onChange={(e) => changeMajor(e)}
                 value={insulinMajor}
@@ -176,7 +199,7 @@ export const TimeSlotRow = ({
               .
               <input
                 type="text"
-                className="ml-1 w-10 rounded bg-sky-400 bg-opacity-40 px-2 text-right font-mono outline-none"
+                className="ml-1 w-10 rounded bg-sky-400 bg-opacity-40 px-2 text-right font-mono outline-none align-middle"
                 inputMode="numeric"
                 onChange={(e) => changeMinor(e)}
                 value={insulinMinor}
@@ -204,7 +227,7 @@ export const TimeSlotRow = ({
             </>
           )}
           {programIndex === 0 && (
-            <span className="ml-2 hidden sm:inline">{t("U/hr")}</span>
+            <span className="ml-2 hidden sm:inline align-middle">{t("U/hr")}</span>
           )}
         </div>
       </div>

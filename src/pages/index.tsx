@@ -252,7 +252,7 @@ export default function Home() {
                           hover:bg-sky-400 hover:text-gray-800"
                           onClick={(e) => addTimeSlot()}
                         >
-                          + Add Time
+                          + Add Time Slot
                         </button>
                       )}
                       {index > 0 && (
@@ -261,6 +261,7 @@ export default function Home() {
                             className="text-md rounded border-2 border-sky-400 bg-transparent px-2 py-2 text-right hover:bg-sky-400 hover:text-gray-800"
                             onChange={(e) => setPercentage(index, e)}
                             title={"Percentage of " + programs[0].Name}
+                            defaultValue={program.Percentage}
                           >
                             {percentages.map((percentage) => {
                               const displayPercentage =
@@ -269,7 +270,6 @@ export default function Home() {
                                 <option
                                   key={displayPercentage}
                                   value={percentage}
-                                  selected={percentage === program.Percentage}
                                 >
                                   {displayPercentage}%
                                 </option>
